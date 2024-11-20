@@ -119,6 +119,8 @@ def open_source_files(
       # Use dask to decode pressure levels since xr's expand_dims is not lazy
       chunks='auto' if (use_dask or pressure_level_suffixes) else None,
   )
+  if 'lat' in forecast.dims:
+    forecast = forecast.rename({'lat': 'latitude', 'lon': 'longitude'})
 
   if pressure_level_suffixes:
     forecast = _decode_pressure_level_suffixes(forecast)
@@ -320,6 +322,10 @@ def open_forecast_and_truth_datasets(
       rename_variables=data_config.rename_variables,
       pressure_level_suffixes=data_config.pressure_level_suffixes,
   )
+
+  # GraphCast uses `lat`, `lon` instead of `latitude` and `longitude`
+  if 'lat' in forecast.dims:
+    forecast = forecast.rename({'lat': 'latitude', 'lon': 'longitude'})
 
   obs_all_times = _impose_data_selection(
       obs,
@@ -826,3 +832,4 @@ def evaluate_with_beam(
               num_threads=num_threads,
           )
       )
+
